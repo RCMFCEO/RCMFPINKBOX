@@ -7,7 +7,7 @@ import {
 } from './types'
 
 import { parseShopifyDomain } from './parse-shopify-domain'
-import { DEFAULT_PAGE_SIZE, DEFAULT_SORT_KEY } from './constants'
+import { DEFAULT_PAGE_SIZE, DEFAULT_SORT_KEY, DEFAULT_COLLECTION_SORT_KEY } from './constants'
 
 const rawStoreDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN
 const fallbackStoreDomain = 'vintage-fashion-lot.myshopify.com'
@@ -285,7 +285,7 @@ export async function getCollection(handle: string): Promise<ShopifyCollection |
 export async function getCollectionProducts({
   collection,
   limit = DEFAULT_PAGE_SIZE,
-  sortKey = DEFAULT_SORT_KEY,
+  sortKey = DEFAULT_COLLECTION_SORT_KEY,
   query: searchQuery,
   reverse = false,
 }: {
