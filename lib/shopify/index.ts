@@ -4,64 +4,71 @@ import {
   ShopifyCart,
   ShopifyCollection,
   ShopifyProduct,
-} from './types'
+} from "./types";
 
-import { parseShopifyDomain } from './parse-shopify-domain'
-import { DEFAULT_PAGE_SIZE, DEFAULT_SORT_KEY, DEFAULT_COLLECTION_SORT_KEY } from './constants'
+import { parseShopifyDomain } from "./parse-shopify-domain";
+import {
+  DEFAULT_PAGE_SIZE,
+  DEFAULT_SORT_KEY,
+  DEFAULT_COLLECTION_SORT_KEY,
+} from "./constants";
 
-const rawStoreDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN
-const fallbackStoreDomain = 'vintage-fashion-lot.myshopify.com'
+const rawStoreDomain = process.env.NEXT_PUBLIC_SHOPIFY_STORE_DOMAIN;
+const fallbackStoreDomain = "vintage-fashion-lot.myshopify.com";
 const SHOPIFY_STORE_DOMAIN = rawStoreDomain
   ? parseShopifyDomain(rawStoreDomain)
-  : fallbackStoreDomain
+  : fallbackStoreDomain;
 
-const SHOPIFY_STOREFRONT_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/api/2024-01/graphql.json`
-const SHOPIFY_STOREFRONT_ACCESS_TOKEN = process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN || process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN
+const SHOPIFY_STOREFRONT_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/api/2024-01/graphql.json`;
+const SHOPIFY_STOREFRONT_ACCESS_TOKEN =
+  process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ||
+  process.env.NEXT_PUBLIC_SHOPIFY_STOREFRONT_ACCESS_TOKEN;
 
 async function shopifyFetch<T>({
   query,
   variables = {},
 }: {
-  query: string
-  variables?: Record<string, any>
+  query: string;
+  variables?: Record<string, any>;
 }): Promise<{ data: T; errors?: any[] }> {
   try {
     const headers: Record<string, string> = {
-      'Content-Type': 'application/json',
-    }
-    
+      "Content-Type": "application/json",
+    };
+
     if (SHOPIFY_STOREFRONT_ACCESS_TOKEN) {
-      headers['X-Shopify-Storefront-Access-Token'] = SHOPIFY_STOREFRONT_ACCESS_TOKEN
+      headers["X-Shopify-Storefront-Access-Token"] =
+        SHOPIFY_STOREFRONT_ACCESS_TOKEN;
     }
 
     const response = await fetch(SHOPIFY_STOREFRONT_API_URL, {
-      method: 'POST',
+      method: "POST",
       headers,
       body: JSON.stringify({
         query,
         variables,
       }),
-      cache: 'no-store',
-    })
+      cache: "no-store",
+    });
 
     if (!response.ok) {
-      const errorBody = await response.text()
+      const errorBody = await response.text();
       throw new Error(
         `Shopify API HTTP error! Status: ${response.status}, Body: ${errorBody}`,
-      )
+      );
     }
 
-    const json = await response.json()
+    const json = await response.json();
 
     if (json.errors) {
-      console.error('Shopify API errors:', json.errors)
-      throw new Error(`Shopify GraphQL errors: ${JSON.stringify(json.errors)}`)
+      console.error("Shopify API errors:", json.errors);
+      throw new Error(`Shopify GraphQL errors: ${JSON.stringify(json.errors)}`);
     }
 
-    return json
+    return json;
   } catch (error) {
-    console.error('Shopify fetch error:', error)
-    throw error
+    console.error("Shopify fetch error:", error);
+    throw error;
   }
 }
 
@@ -71,10 +78,10 @@ export async function getProducts({
   reverse = false,
   query: searchQuery,
 }: {
-  first?: number
-  sortKey?: ProductSortKey
-  reverse?: boolean
-  query?: string
+  first?: number;
+  sortKey?: ProductSortKey;
+  reverse?: boolean;
+  query?: string;
 }): Promise<ShopifyProduct[]> {
   const query = /* gql */ `
     query getProducts($first: Int!, $sortKey: ProductSortKeys!, $reverse: Boolean) {
@@ -135,18 +142,18 @@ export async function getProducts({
         }
       }
     }
-  `
+  `;
 
   const { data } = await shopifyFetch<{
     products: {
-      edges: Array<{ node: ShopifyProduct }>
-    }
+      edges: Array<{ node: ShopifyProduct }>;
+    };
   }>({
     query,
     variables: { first, sortKey, reverse, query: searchQuery },
-  })
+  });
 
-  return data.products.edges.map((edge) => edge.node)
+  return data.products.edges.map((edge) => edge.node);
 }
 
 export async function getProduct(
@@ -210,16 +217,16 @@ export async function getProduct(
         }
       }
     }
-  `
+  `;
 
   const { data } = await shopifyFetch<{
-    product: ShopifyProduct | null
+    product: ShopifyProduct | null;
   }>({
     query,
     variables: { handle },
-  })
+  });
 
-  return data.product
+  return data.product;
 }
 
 export async function getCollections(first = 10): Promise<ShopifyCollection[]> {
@@ -241,21 +248,23 @@ export async function getCollections(first = 10): Promise<ShopifyCollection[]> {
         }
       }
     }
-  `
+  `;
 
   const { data } = await shopifyFetch<{
     collections: {
-      edges: Array<{ node: ShopifyCollection }>
-    }
+      edges: Array<{ node: ShopifyCollection }>;
+    };
   }>({
     query,
     variables: { first },
-  })
+  });
 
-  return data.collections.edges.map((edge) => edge.node)
+  return data.collections.edges.map((edge) => edge.node);
 }
 
-export async function getCollection(handle: string): Promise<ShopifyCollection | null> {
+export async function getCollection(
+  handle: string,
+): Promise<ShopifyCollection | null> {
   const query = /* gql */ `
     query getCollection($handle: String!) {
       collection(handle: $handle) {
@@ -270,16 +279,16 @@ export async function getCollection(handle: string): Promise<ShopifyCollection |
         }
       }
     }
-  `
+  `;
 
   const { data } = await shopifyFetch<{
-    collection: ShopifyCollection | null
+    collection: ShopifyCollection | null;
   }>({
     query,
     variables: { handle },
-  })
+  });
 
-  return data.collection
+  return data.collection;
 }
 
 export async function getCollectionProducts({
@@ -289,11 +298,11 @@ export async function getCollectionProducts({
   query: searchQuery,
   reverse = false,
 }: {
-  collection: string
-  limit?: number
-  sortKey?: ProductCollectionSortKey
-  query?: string
-  reverse?: boolean
+  collection: string;
+  limit?: number;
+  sortKey?: ProductCollectionSortKey;
+  query?: string;
+  reverse?: boolean;
 }): Promise<ShopifyProduct[]> {
   const query = /* gql */ `
     query getCollectionProducts($handle: String!, $first: Int!, $sortKey: ProductCollectionSortKeys!, $reverse: Boolean) {
@@ -359,14 +368,14 @@ export async function getCollectionProducts({
         }
       }
     }
-  `
+  `;
 
   const { data } = await shopifyFetch<{
     collection: {
       products: {
-        edges: Array<{ node: ShopifyProduct }>
-      }
-    } | null
+        edges: Array<{ node: ShopifyProduct }>;
+      };
+    } | null;
   }>({
     query,
     variables: {
@@ -376,13 +385,13 @@ export async function getCollectionProducts({
       query: searchQuery,
       reverse,
     },
-  })
+  });
 
   if (!data.collection) {
-    return []
+    return [];
   }
 
-  return data.collection.products.edges.map((edge) => edge.node)
+  return data.collection.products.edges.map((edge) => edge.node);
 }
 
 export async function createCart(): Promise<ShopifyCart> {
@@ -435,20 +444,20 @@ export async function createCart(): Promise<ShopifyCart> {
         }
       }
     }
-  `
+  `;
 
   const { data } = await shopifyFetch<{
     cartCreate: {
-      cart: ShopifyCart
-      userErrors: Array<{ field: string; message: string }>
-    }
-  }>({ query })
+      cart: ShopifyCart;
+      userErrors: Array<{ field: string; message: string }>;
+    };
+  }>({ query });
 
   if (data.cartCreate.userErrors.length > 0) {
-    throw new Error(data.cartCreate.userErrors[0].message)
+    throw new Error(data.cartCreate.userErrors[0].message);
   }
 
-  return data.cartCreate.cart
+  return data.cartCreate.cart;
 }
 
 export async function addCartLines(
@@ -504,26 +513,26 @@ export async function addCartLines(
         }
       }
     }
-  `
+  `;
 
   const { data } = await shopifyFetch<{
     cartLinesAdd: {
-      cart: ShopifyCart
-      userErrors: Array<{ field: string; message: string }>
-    }
+      cart: ShopifyCart;
+      userErrors: Array<{ field: string; message: string }>;
+    };
   }>({
     query,
     variables: {
       cartId,
       lines,
     },
-  })
+  });
 
   if (data.cartLinesAdd.userErrors.length > 0) {
-    throw new Error(data.cartLinesAdd.userErrors[0].message)
+    throw new Error(data.cartLinesAdd.userErrors[0].message);
   }
 
-  return data.cartLinesAdd.cart
+  return data.cartLinesAdd.cart;
 }
 
 export async function updateCartLines(
@@ -579,26 +588,26 @@ export async function updateCartLines(
         }
       }
     }
-  `
+  `;
 
   const { data } = await shopifyFetch<{
     cartLinesUpdate: {
-      cart: ShopifyCart
-      userErrors: Array<{ field: string; message: string }>
-    }
+      cart: ShopifyCart;
+      userErrors: Array<{ field: string; message: string }>;
+    };
   }>({
     query,
     variables: {
       cartId,
       lines,
     },
-  })
+  });
 
   if (data.cartLinesUpdate.userErrors.length > 0) {
-    throw new Error(data.cartLinesUpdate.userErrors[0].message)
+    throw new Error(data.cartLinesUpdate.userErrors[0].message);
   }
 
-  return data.cartLinesUpdate.cart
+  return data.cartLinesUpdate.cart;
 }
 
 export async function removeCartLines(
@@ -654,26 +663,26 @@ export async function removeCartLines(
         }
       }
     }
-  `
+  `;
 
   const { data } = await shopifyFetch<{
     cartLinesRemove: {
-      cart: ShopifyCart
-      userErrors: Array<{ field: string; message: string }>
-    }
+      cart: ShopifyCart;
+      userErrors: Array<{ field: string; message: string }>;
+    };
   }>({
     query,
     variables: {
       cartId,
       lineIds,
     },
-  })
+  });
 
   if (data.cartLinesRemove.userErrors.length > 0) {
-    throw new Error(data.cartLinesRemove.userErrors[0].message)
+    throw new Error(data.cartLinesRemove.userErrors[0].message);
   }
 
-  return data.cartLinesRemove.cart
+  return data.cartLinesRemove.cart;
 }
 
 export async function getCart(cartId: string): Promise<ShopifyCart | null> {
@@ -733,14 +742,14 @@ export async function getCart(cartId: string): Promise<ShopifyCart | null> {
         checkoutUrl
       }
     }
-  `
+  `;
 
   const { data } = await shopifyFetch<{
-    cart: ShopifyCart | null
+    cart: ShopifyCart | null;
   }>({
     query,
     variables: { cartId },
-  })
+  });
 
-  return data.cart
+  return data.cart;
 }
