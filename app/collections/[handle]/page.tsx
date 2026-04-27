@@ -224,8 +224,8 @@ function ProductCard({
   // Get first image from the images array
   const firstImage = product.images?.edges?.[0]?.node;
 
-  // Link to Shopify product page for checkout
-  const shopifyProductUrl = `https://vintage-fashion-lot.myshopify.com/products/${product.handle}`;
+  // Link to Shopify product page for checkout (using custom domain)
+  const shopifyProductUrl = `https://rcmfpinkbox.com/products/${product.handle}`;
 
   const isAvailable = product.availableForSale !== false;
 

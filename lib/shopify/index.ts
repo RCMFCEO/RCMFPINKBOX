@@ -19,6 +19,9 @@ const SHOPIFY_STORE_DOMAIN = rawStoreDomain
   ? parseShopifyDomain(rawStoreDomain)
   : fallbackStoreDomain;
 
+// Custom domain for customer-facing links
+export const SHOPIFY_CUSTOM_DOMAIN = "rcmfpinkbox.com";
+
 const SHOPIFY_STOREFRONT_API_URL = `https://${SHOPIFY_STORE_DOMAIN}/api/2024-01/graphql.json`;
 const SHOPIFY_STOREFRONT_ACCESS_TOKEN =
   process.env.SHOPIFY_STOREFRONT_ACCESS_TOKEN ||
